@@ -1,0 +1,10 @@
+app:
+  interface_lang: zh
+  report_lang: zh
+llm:
+  provider: api
+  api:
+    base_url: ''
+    model: ''
+    api_key: ''
+report: {}

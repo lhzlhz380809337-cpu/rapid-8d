@@ -1,0 +1,4 @@
+# Rapid 8D runtime dependencies.
+# Kept at the project root so a single command can prepare the backend:
+#   <python> -m pip install -r requirements.txt
+-r backend/requirements.lock.txt

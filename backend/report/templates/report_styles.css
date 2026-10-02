@@ -1,0 +1,190 @@
+/* 8D Report — Professional Styles */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.85;
+  color: #2c3e50;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 50px 40px;
+  background: #fff;
+}
+
+/* ── Cover ─────────────────────────────────────────────── */
+.cover {
+  text-align: center;
+  padding: 70px 0 50px;
+  border-bottom: 3px solid #2c3e50;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.cover::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  background: #2980b9;
+  margin: 12px auto 0;
+}
+
+.cover h1 {
+  font-size: 28px;
+  color: #1a5276;
+  margin-bottom: 14px;
+  letter-spacing: 3px;
+}
+
+.cover .subtitle {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 28px;
+  font-weight: 400;
+}
+
+.cover .meta {
+  font-size: 13px;
+  color: #888;
+  line-height: 2.2;
+}
+
+.cover .meta div {
+  display: inline-block;
+  margin: 0 20px;
+}
+
+/* ── Step Sections ──────────────────────────────────────── */
+.step-section {
+  margin-bottom: 36px;
+  padding: 20px 24px;
+  background: #fff;
+  border: 1px solid #e8ecf0;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  page-break-inside: avoid;
+}
+
+.step-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a5276;
+  border-left: 4px solid #2980b9;
+  padding: 6px 0 6px 14px;
+  margin-bottom: 16px;
+  background: linear-gradient(90deg, #f0f6fb 0%, transparent 100%);
+}
+
+.step-content {
+  padding: 2px 6px;
+}
+
+.step-content p {
+  margin-bottom: 10px;
+}
+
+.step-content h1 { font-size: 20px; color: #1a5276; margin: 16px 0 10px; }
+.step-content h2 { font-size: 17px; color: #2471a3; margin: 14px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; }
+.step-content h3 { font-size: 15px; color: #2980b9; margin: 12px 0 6px; }
+.step-content h4 { font-size: 14px; color: #555; margin: 10px 0 4px; }
+
+/* ── Tables ─────────────────────────────────────────────── */
+.step-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.step-content table th,
+.step-content table td {
+  border: 1px solid #d5dbdf;
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.step-content table th {
+  background: #2c3e50;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+}
+
+.step-content table tr:nth-child(even) td {
+  background: #f8f9fa;
+}
+
+.step-content table tr:hover td {
+  background: #eaf2f8;
+}
+
+/* ── Lists ──────────────────────────────────────────────── */
+.step-content ul, .step-content ol {
+  margin: 10px 0 10px 26px;
+}
+
+.step-content li {
+  margin-bottom: 6px;
+}
+
+.step-content li::marker {
+  color: #2980b9;
+}
+
+/* ── Emphasis ───────────────────────────────────────────── */
+.step-content strong {
+  color: #1a5276;
+  font-weight: 600;
+}
+
+/* ── Code / Mermaid / Fishbone ──────────────────────────── */
+.step-content pre.mermaid {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  overflow-x: auto;
+  margin: 14px 0;
+}
+
+.fishbone-container {
+  margin: 16px 0;
+}
+
+/* ── Signature Block ────────────────────────────────────── */
+.signature-block {
+  margin-top: 50px;
+  padding-top: 24px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.signature-table {
+  width: 100%;
+}
+
+.signature-table td {
+  padding: 16px 24px;
+  width: 33%;
+  vertical-align: bottom;
+  height: 90px;
+}
+
+.signature-table .label {
+  border-bottom: 1px solid #999;
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  padding-bottom: 6px;
+}
+
+/* ── Print ──────────────────────────────────────────────── */
+@media print {
+  body { padding: 20px 30px; }
+  .step-section { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+  .step-title { background: #f0f6fb !important; -webkit-print-color-adjust: exact; }
+  .step-content table th { background: #2c3e50 !important; -webkit-print-color-adjust: exact; color: #fff !important; }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "rapid-8d-frontend",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --configLoader runner --port 18080",
+    "build": "vue-tsc -b && vite build --configLoader runner",
+    "preview": "vite preview",
+    "mobile:sync": "npm run build && cap sync",
+    "mobile:android": "cap open android",
+    "mobile:ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "dompurify": "^3.4.16",
+    "marked": "^12.0.0",
+    "mermaid": "^11.15.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.0",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.3",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "typescript": "~5.5.0",
+    "vite": "^8.3.1",
+    "vue-tsc": "^2.0.0"
+  }
+}

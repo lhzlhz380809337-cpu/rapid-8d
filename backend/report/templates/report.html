@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8D Report — {{ title }}</title>
+<script src="https://unpkg.com/mermaid@11/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true, theme:'default', securityLevel:'loose'});</script>
+<script>{% include "fishbone.js" %}</script>
+<style>
+{% include "report_styles.css" %}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>{{ cover_title }}</h1>
+  <div class="subtitle">{{ title }}</div>
+  <div class="meta">
+    <div>{{ doc_labels.doc_number }}：{{ doc_number or "—" }}</div>
+    <div>{{ doc_labels.date }}：{{ date }}</div>
+    <div>{{ doc_labels.company }}：{{ company_name or "—" }}</div>
+  </div>
+</div>
+
+{% for step in steps %}
+{% if step.content %}
+<div class="step-section">
+  <div class="step-title">{{ step.label }}</div>
+  <div class="step-content">{{ step.content | safe }}</div>
+</div>
+{% endif %}
+{% endfor %}
+
+<div class="signature-block">
+  <table class="signature-table">
+    <tr>
+      <td><div class="label">{{ doc_labels.drafted_by }}</div></td>
+      <td><div class="label">{{ doc_labels.reviewed_by }}</div></td>
+      <td><div class="label">{{ doc_labels.approved_by }}</div></td>
+    </tr>
+  </table>
+</div>
+
+</body>
+</html>

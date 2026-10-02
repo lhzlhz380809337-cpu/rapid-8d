@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Rapid 8D</string>
+    <string name="title_activity_main">Rapid 8D</string>
+    <string name="package_name">com.rapid8d.app</string>
+    <string name="custom_url_scheme">com.rapid8d.app</string>
+</resources>
