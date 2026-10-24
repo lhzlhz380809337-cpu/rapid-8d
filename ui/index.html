@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rapid 8D · 质量问题工作台</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/style.css"></head>
+<body>
+<aside class="rail">
+  <button class="brand" id="homeBtn" aria-label="返回工作台"><span class="brand-mark">8D</span><span>Rapid 8D<small>质量问题解决工作台</small></span></button>
+  <button class="dashboard-link" id="dashboardBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z"/></svg><span>案例总览</span></button>
+  <button class="primary wide" id="newBtn"><span aria-hidden="true">＋</span> 新建案例</button>
+  <div class="rail-label">案例列表 <span id="caseCount">0</span></div>
+  <input id="caseSearch" class="search" placeholder="搜索案例" aria-label="搜索案例">
+  <nav id="caseList" aria-label="我的案例"></nav>
+  <div class="rail-bottom">
+    <button id="settingsBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-8 4 1-3-1-2 3-3 2 1 3-1 3 1 2-1 3 3-1 2 1 3-1 3 1 2-3 3-2-1-3 1-3-1-2 1-3-3 1-2Z"/></svg><span>模型设置</span></button>
+    <div class="storage-row"><span><i class="local-dot"></i> 本机保存</span><button id="quitBtn" title="保存后退出程序">退出</button></div>
+  </div>
+</aside>
+<main id="main">
+<section id="home" class="home">
+  <header class="home-topbar"><span>工作台 <b>/</b> 案例总览</span><span class="workspace-label"><i class="local-dot"></i> 个人工作区</span></header>
+  <div class="home-content">
+    <div class="page-heading"><div><div class="eyebrow">QUALITY PROBLEM SOLVING</div><h1>质量问题工作台</h1><p class="lead">跟进调查、验证根因，管理每一份 8D 报告。</p></div><span class="method-label">8D 方法</span></div>
+    <div class="overview-grid" aria-label="案例统计">
+      <div class="overview-item"><span>全部案例</span><strong id="totalCases">0</strong><small>本机案例记录</small></div>
+      <div class="overview-item"><span>处理中</span><strong id="activeCases">0</strong><small>尚未完成结案</small></div>
+      <div class="overview-item"><span>已结案</span><strong id="closedCases">0</strong><small>已完成阶段复核</small></div>
+    </div>
+    <section class="start-section" aria-labelledby="startTitle">
+      <div class="section-heading"><h2 id="startTitle">开始新的分析</h2><span>两种方式，同一份报告</span></div>
+      <div class="entry-grid">
+        <button class="entry-card" data-new="guided">
+          <span class="entry-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H9l-5 4V4Z"/><path d="M8 8h8M8 12h5"/></svg></span>
+          <span class="entry-copy"><span class="entry-tag">逐步调查</span><strong>引导分析</strong><span class="entry-description">通过对话澄清问题、核实证据，逐步完成 D1–D8。</span><span class="entry-link">开始分析 <span aria-hidden="true">→</span></span></span>
+        </button>
+        <button class="entry-card" data-new="import">
+          <span class="entry-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h9l5 5v13H5V3Zm9 0v6h5M8 13h8M8 17h6"/></svg></span>
+          <span class="entry-copy"><span class="entry-tag">已有调查记录</span><strong>资料成稿</strong><span class="entry-description">上传文件或粘贴分析过程，整理报告并识别证据缺口。</span><span class="entry-link">导入资料 <span aria-hidden="true">→</span></span></span>
+        </button>
+      </div>
+    </section>
+    <section class="recent-panel" aria-labelledby="recentTitle">
+      <div class="section-heading"><h2 id="recentTitle">最近案例</h2><span>按最近更新时间排列</span></div>
+      <div id="recentCases"></div>
+    </section>
+    <div id="setupHint" class="setup-hint hidden"><span class="info-mark">i</span><div><strong>配置模型接口，开始 AI 分析</strong><span>在左下角“模型设置”填写接口地址、模型名称和密钥。</span></div><button id="setupModelBtn">前往设置 →</button></div>
+    <footer><span>Rapid 8D <b>·</b> Windows 桌面版 0.2.0</span><span>调查记录 → 根因验证 → 措施与复核</span></footer>
+  </div>
+</section>
+<section id="workspace" class="workspace hidden">
+ <header class="work-header">
+   <div class="case-heading"><div class="breadcrumb">工作台 <span>/</span> 8D 案例</div><h2 id="caseTitle"></h2><div id="caseMeta" class="meta"></div></div>
+   <div class="header-right"><span id="caseProgress" class="case-progress"></span><div class="header-actions"><button id="historyBtn">历史版本</button><button id="wordBtn">导出 Word</button><button id="pdfBtn" class="primary">导出 PDF</button></div></div>
+ </header>
+ <div class="work-body">
+ <aside class="stages"><div class="rail-label">8D 阶段</div><div id="stageList"></div><div class="stage-note">可随时补充任一步骤。<br>完成后进行阶段复核。</div></aside>
+ <section class="investigation">
+  <div class="pane-tabs"><button class="active" data-tab="chat">分析对话</button><button data-tab="sources">资料库 <span id="sourceCount">0</span></button><button data-tab="gaps">待办 <span id="gapCount">0</span></button></div>
+  <div id="chatPane" class="tab-pane"><div class="chat-heading"><span id="chatStage"></span><button id="importBtn" class="subtle">整份成稿</button></div><div id="messages" class="messages"></div><div id="jobStatus" class="job-status hidden"></div><div class="composer"><textarea id="message" rows="4" placeholder="补充现象、调查结果或验证记录…"></textarea><div class="composer-footer"><span>Ctrl + Enter 发送</span><button id="sendBtn" class="primary">发送 ↑</button></div></div></div>
+  <div id="sourcesPane" class="tab-pane hidden"><div class="pane-intro"><h3>调查资料</h3><p>勾选本次发送的原始资料；当前报告和已有分析也会作为上下文发送。扫描件和照片暂不识别。</p></div><label class="upload" id="uploadLabel">＋ 选择文件<input type="file" id="files" multiple accept=".docx,.pdf,.xlsx,.xls,.csv,.tsv,.txt,.md"></label><p class="hint">DOCX · 文字 PDF · Excel · 文本，单个 20 MB</p><textarea id="pasteText" rows="6" placeholder="粘贴调查过程、试验结果或其他文字资料…"></textarea><button id="pasteBtn" class="secondary wide">添加文字资料</button><div id="sources"></div></div>
+  <div id="gapsPane" class="tab-pane hidden"><div class="pane-intro"><h3>证据缺口与冲突</h3><p>补充关键证据、处理资料冲突，再复核阶段结论。</p></div><div id="gaps"></div></div>
+ </section>
+ <section class="report-pane">
+  <div class="report-toolbar"><div class="report-toolbar-title"><strong id="reportKind">报告草稿</strong><span id="saveState">已保存</span></div><div class="report-tools"><button id="fishBtn">鱼骨与根因</button><button id="editBtn">编辑正文</button><button id="reviewBtn" class="outline">阶段复核</button><button id="focusReportBtn" class="icon-button" title="展开报告" aria-label="展开报告"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg></button></div></div>
+  <div id="proposalBanner" class="proposal-banner hidden"><div><strong>分析建议已生成</strong><span>对比现有内容，选择需要采用的阶段。</span></div><button id="proposalBtn" class="primary">查看建议</button></div>
+  <div class="paper-scroll"><article class="paper"><div class="paper-kicker">8D 质量问题解决报告</div><div class="paper-title"><h2 id="reportHeading"></h2><div id="reportState" class="status-pill"></div></div><div id="reportContent" class="markdown"></div><textarea id="reportEditor" class="report-editor hidden" spellcheck="false" aria-label="当前阶段报告正文"></textarea><div id="fishPreview" class="fish-preview hidden"></div><div class="paper-footer"><span>Rapid 8D</span><span id="paperRevision"></span></div></article></div>
+ </section>
+ </div>
+</section>
+</main>
+<dialog id="modal"><div class="modal-top"><h2 id="modalTitle"></h2><button id="closeModal" aria-label="关闭对话框">×</button></div><div id="modalBody"></div></dialog>
+<div id="toast" class="toast hidden" role="status"></div>
+<script src="/app.js"></script>
+</body></html>
