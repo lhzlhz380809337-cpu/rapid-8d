@@ -81,4 +81,4 @@ D4 返回原因树而非一张不可编辑图片。应用编辑同一数据后�
 
 
 ## 桌面实现对接（2026-10-14）
-Rapid 8D 0.2.0 已接入这套规则。实际请求会补充 stages[].report_markdown、根因 verification_record 等桌面契约（见 rapid8d/model.py），并由应用校验阶段、编号与来源，AI 无权自动复核或结案。文件解析、建议采用与导出已用模拟服务检查；尚未用真实模型完成 prompts/prompt 行为质量验收，不能把模拟通过视为模型效果保证。使用与验收说明见 README_DESKTOP.md 和 docs/desktop-validation.md。
+Rapid 8D 0.3.0 已接入这套规则。实际请求会补充 stages[].report_markdown、根因 verification_record 等桌面契约（见 rapid8d/model.py），并由应用校验阶段、编号与来源，AI 无权自动复核或结案。文件解析、建议采用与导出已用模拟服务检查；尚未用真实模型完成 prompts/prompt 行为质量验收，不能把模拟通过视为模型效果保证。使用与验收说明见 README_DESKTOP.md 和 docs/desktop-validation.md。

@@ -1,5 +1,5 @@
 """Per-user loopback desktop app, using the installed browser as a window."""
-import argparse,json,os,subprocess,sys,threading,time,urllib.request,webbrowser,ctypes,hashlib
+import argparse,json,os,subprocess,sys,threading,time,urllib.request,webbrowser,ctypes,hashlib,shutil
 from pathlib import Path
 from .server import App,create_server
 def root_path():return Path(getattr(sys,"_MEIPASS",Path(__file__).resolve().parent.parent))
@@ -10,7 +10,7 @@ def launch_window(url,folder):
         candidates.extend([base/"Microsoft/Edge/Application/msedge.exe",base/"Google/Chrome/Application/chrome.exe"])
     for path in candidates:
         if path.exists():
-            subprocess.Popen([str(path),"--app="+url,"--user-data-dir="+str(folder/"browser-profile"),"--no-first-run","--disable-session-crashed-bubble","--window-size=1440,960"],creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            subprocess.Popen([str(path),"--app="+url,"--no-first-run","--disable-session-crashed-bubble","--window-size=1440,960"],creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             return
     webbrowser.open(url)
 def main():
@@ -18,6 +18,11 @@ def main():
     args=parser.parse_args()
     data=Path(args.data_dir or Path(os.environ.get("LOCALAPPDATA",Path.home()))/"Rapid8D")
     data.mkdir(parents=True,exist_ok=True);session=data/"session.json";mutex=None
+    # Versions before 0.3.0 created a second Chromium profile solely for the app
+    # window. Its cache could grow to hundreds of MB although the case database
+    # stayed tiny. The app now uses the user's installed browser directly.
+    try:shutil.rmtree(data/"browser-profile",ignore_errors=True)
+    except Exception:pass
     if os.name=="nt" and not args.no_browser:
         kernel=ctypes.windll.kernel32
         kernel.CreateMutexW.argtypes=[ctypes.c_void_p,ctypes.c_bool,ctypes.c_wchar_p];kernel.CreateMutexW.restype=ctypes.c_void_p
