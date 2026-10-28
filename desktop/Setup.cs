@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 [assembly: AssemblyTitle("Rapid 8D Setup")]
 [assembly: AssemblyProduct("Rapid 8D")]
-[assembly: AssemblyVersion("0.3.0.0")]
-[assembly: AssemblyFileVersion("0.3.0.0")]
+[assembly: AssemblyVersion("0.3.1.0")]
+[assembly: AssemblyFileVersion("0.3.1.0")]
 class Setup : Form {
     static string destination = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Programs","Rapid8D");
     Button install = new Button();

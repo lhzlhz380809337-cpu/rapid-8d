@@ -14,7 +14,7 @@ Rapid 8D 是一款面向制造业质量问题解决的 Windows 桌面应用。�
 
 ## 下载与使用
 
-在仓库右侧 **Releases** 下载 `Rapid8D-Setup-0.3.0.exe`，双击安装。安装程序会创建桌面和开始菜单快捷方式。
+在仓库右侧 **Releases** 下载 `Rapid8D-Setup-0.3.1.exe`，双击安装。安装程序会创建桌面和开始菜单快捷方式。
 
 详细说明见 [README_DESKTOP.md](README_DESKTOP.md)，桌面版设计见 [docs/desktop-design.md](docs/desktop-design.md)。
 
@@ -22,4 +22,4 @@ Rapid 8D 是一款面向制造业质量问题解决的 Windows 桌面应用。�
 
 程序使用 Python 本地服务和原生 Windows 启动器。运行 `run-dev.ps1` 可启动开发版；运行 `desktop/build.ps1` 和 `desktop/build-setup.ps1` 可生成便携版与安装程序。
 
-当前版本：**0.3.0**
+当前版本：**0.3.1**
