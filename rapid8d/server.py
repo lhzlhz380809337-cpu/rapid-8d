@@ -5,7 +5,7 @@ from pathlib import Path
 from . import __version__
 from .domain import *
 from .store import Store
-from .model import Settings,analyze,completion
+from .model import Settings,analyze,completion,keep_as_evidence,proposal_substance,wants_report
 from .parsers import extract
 from .fishbone import svg
 from .exporter import export
@@ -128,23 +128,33 @@ class App:
             if mode not in ("guided","import"):raise UserError("分析模式无效。")
             stage(c,sid)
             message=str(body.get("message","")).strip()
-            selected=list(body.get("source_ids",[s["id"] for s in c["sources"]]))
+            revise=mode=="import" or bool(body.get("revise_report")) or wants_report(message)
+            selected=list(body.get("source_ids",[s["id"] for s in c["sources"] if not (s.get("origin")=="user" and str(s.get("name","")).startswith("对话"))]))
             if message:
                 if len(message)>MAX_MESSAGE:raise UserError("单条消息过长，请改为粘贴资料。")
-                src=self.add_source(c,"对话 "+sid,dict(chunks=[dict(locator="用户消息",text=message)],coverage="完整消息",warnings=[],char_count=len(message)),"user")
-                selected.append(src["id"]); c["messages"].append(dict(role="user",stage=sid,text=message,at=now()))
+                c["messages"].append(dict(role="user",stage=sid,text=message,at=now()))
                 c=self.store.save(c,expected,"新增对话")
             if mode=="import" and not selected:raise UserError("请先粘贴或上传分析资料。")
+            if mode=="guided" and not message and not selected and not revise:raise UserError("请先描述问题或添加资料。")
             jid=uid("J");self.jobs[jid]=dict(id=jid,status="running",message="正在分析资料，通常需要几十秒…")
             def run():
                 try:
-                    data=analyze(config,c,mode,sid,selected,self.root/"prompts")
+                    data=analyze(config,c,mode,sid,selected,self.root/"prompts",revise)
                     current=self.store.get(cid)
                     if current["revision"]!=c["revision"]:raise UserError("分析期间案例已修改。请重新分析，避免覆盖最新内容。",409)
-                    current["messages"].append(dict(role="assistant",stage=sid,text=data.get("summary","")+"\n\n"+(data.get("next_question") or ""),at=now()))
+                    if data.get("record_input") and message and keep_as_evidence(message):
+                        self.add_source(current,sid+" 已采纳陈述",dict(chunks=[dict(locator="用户消息",text=message)],coverage="完整消息",warnings=[],char_count=len(message)),"document")
+                    focus=stage(current,sid)
+                    question=str(data.get("next_question") or "").strip()
+                    hint=str(data.get("answer_hint") or "").strip()
+                    if question: focus["focus_question"]=question
+                    if hint: focus["focus_hint"]=hint
+                    current["messages"].append(dict(role="assistant",stage=sid,text=(data.get("summary") or "")+"\n\n"+(data.get("next_question") or ""),at=now()))
                     current=self.store.save(current,c["revision"],"AI分析回应")
-                    p=self.store.proposal(cid,data,current["revision"])
-                    self.jobs[jid]=dict(id=jid,status="done",proposal_id=p["id"])
+                    done=dict(id=jid,status="done")
+                    if proposal_substance(data,c):
+                        done["proposal_id"]=self.store.proposal(cid,data,current["revision"])["id"]
+                    self.jobs[jid]=done
                 except UserError as ex:self.jobs[jid]=dict(id=jid,status="error",message=ex.message)
                 except Exception:self.jobs[jid]=dict(id=jid,status="error",message="模型结果处理失败；现有报告已保留。请检查接口或重试。")
             threading.Thread(target=run,daemon=True).start()

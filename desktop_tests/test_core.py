@@ -3,7 +3,7 @@ from pathlib import Path
 from rapid8d.domain import *
 from rapid8d.store import Store
 from rapid8d.parsers import extract
-from rapid8d.model import Settings,protect,parse_json,build_messages,completion
+from rapid8d.model import Settings,protect,parse_json,build_messages,completion,ensure_ssl,hold_stage_text,proposal_substance,keep_as_evidence
 from rapid8d.server import App,create_server
 ROOT=Path(__file__).resolve().parents[1]
 def sample():
@@ -75,6 +75,22 @@ class Core(unittest.TestCase):
             self.assertEqual(store.version(c["id"],h["id"])["stages"][0]["report_markdown"],"")
             with self.assertRaises(UserError):store.version(other["id"],h["id"])
             p=store.proposal(c["id"],{},saved["revision"]);self.assertEqual(store.pending_proposal(c["id"],1)["id"],p["id"])
+    def test_ssl_fallback_when_vendor_cert_missing(self):
+        import ssl
+        import rapid8d.model as model
+        original=ssl.SSLContext.__new__
+        model._ssl_ready=False
+        def broken(cls,protocol=None,*args,**kwargs):
+            raise FileNotFoundError(2,"No such file or directory")
+        ssl.SSLContext.__new__=broken
+        try:
+            ensure_ssl()
+            context=ssl.create_default_context()
+            self.assertGreater(context.cert_store_stats()["x509"],0)
+        finally:
+            ssl.SSLContext.__new__=original
+            model._ssl_ready=False
+            ensure_ssl()
     def test_dpapi_and_settings_hide_key(self):
         with tempfile.TemporaryDirectory() as d:
             st=Settings(d);key="synthetic-secret-only"
@@ -88,6 +104,32 @@ class Core(unittest.TestCase):
         m=build_messages(c,"guided","D4",["S1"],ROOT/"prompts")
         self.assertNotIn("PRIVATE_UNSELECTED",m[1]["content"])
         self.assertIn("report_markdown",m[0]["content"]);self.assertIn("verification_record",m[0]["content"])
+        c["messages"]=[dict(role="user",stage="D1",text="GG")]
+        guided=build_messages(c,"guided","D1",["S1"],ROOT/"prompts")
+        self.assertIn("谁负责协调这次问题处理",guided[0]["content"])
+        self.assertIn("把注意力拉回",guided[0]["content"])
+        self.assertIn("跨阶段矛盾",guided[0]["content"])
+        self.assertNotIn("临时受控起点",guided[0]["content"])
+        self.assertNotIn("IS / IS-NOT",guided[0]["content"])
+        self.assertIn("GG",guided[1]["content"])
+        c["stages"][1]["report_markdown"]="D2_RANGE_TOKEN"
+        c["messages"]=[dict(role="user",stage="D1",text="GG"),dict(role="user",stage="D2",text="OTHER_STAGE_CHAT")]
+        c["sources"].append(dict(id="S9",name="对话 D1",origin="user",chunks=[dict(text="GG_CHAT_ONLY",locator="用户消息")]))
+        cross=build_messages(c,"guided","D1",["S1","S9"],ROOT/"prompts")
+        self.assertIn("D2_RANGE_TOKEN",cross[1]["content"])
+        self.assertNotIn("OTHER_STAGE_CHAT",cross[1]["content"])
+        self.assertNotIn("GG_CHAT_ONLY",cross[1]["content"])
+        self.assertIn("GG",cross[1]["content"])
+        fresh=new_case("焦点","guided","zh")
+        self.assertTrue(fresh["stages"][0]["focus_question"])
+        self.assertFalse(keep_as_evidence("GG"))
+        held=hold_stage_text({"stages":[{"id":"D1","report_markdown":"改写","status":"complete"},{"id":"D2","report_markdown":"另一阶段"}],"fishbone":{"categories":[{"id":"X"}]}},c,"D1",False)
+        self.assertEqual(held["stages"][0]["report_markdown"],c["stages"][0]["report_markdown"])
+        self.assertEqual(len(held["stages"]),1)
+        self.assertIsNone(held["fishbone"])
+        self.assertFalse(proposal_substance(held,c))
+        held["conflicts"]=[{"id":"K1","description":"D2范围与D3围堵不一致"}]
+        self.assertTrue(proposal_substance(held,c))
         with self.assertRaises(UserError):parse_json('{"invalid":')
     def test_text_limits_and_scan_refusal(self):
         t=extract("large.txt",("中"*120010).encode());self.assertEqual(t["char_count"],120000);self.assertTrue(t["warnings"])
@@ -131,7 +173,7 @@ class Core(unittest.TestCase):
                 self.assertEqual(err.exception.code,409)
                 from unittest.mock import patch
                 a.settings.save(dict(base_url=base+"/mock",model="mock"))
-                def fake(config,case,mode,sid,selected,root):
+                def fake(config,case,mode,sid,selected,root,revise=False):
                     p=proposal(sample());p["root_causes"]=[];p["fishbone"]={"problem_statement":"测试","categories":[]};p["gaps"]=[]
                     return validate_proposal(p,case,mode,sid)
                 with patch("rapid8d.server.analyze",fake):

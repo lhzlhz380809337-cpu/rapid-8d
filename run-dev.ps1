@@ -35,10 +35,14 @@ if (-not (Test-Path -LiteralPath $DataDir)) { New-Item -ItemType Directory -Path
 
 if (-not $Python) {
     $candidates = @(
-        (Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'),
         (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python312\python.exe'),
-        (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python311\python.exe')
+        (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python311\python.exe'),
+        (Join-Path $env:ProgramFiles 'Python312\python.exe'),
+        (Join-Path $env:ProgramFiles 'Python311\python.exe'),
+        (Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe')
     )
+    $onPath = Get-Command python -ErrorAction SilentlyContinue
+    if ($onPath -and $onPath.Source -notmatch 'codex-runtimes') { $candidates = @($onPath.Source) + $candidates }
     $Python = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 }
 if (-not $Python -or -not (Test-Path -LiteralPath $Python)) {

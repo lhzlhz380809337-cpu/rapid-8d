@@ -23,7 +23,7 @@
   <button class="primary new-case-button" id="newBtn"><span aria-hidden="true">＋</span> 新建 8D 案例</button>
   <div class="sidebar-bottom">
     <div class="local-state"><i class="local-dot"></i><span><strong>本机工作区</strong><small>数据已保存在本机</small></span></div>
-    <div class="version-row"><span>v0.3.1</span><button id="quitBtn" title="保存后退出程序">退出</button></div>
+    <div class="version-row"><span>v0.3.2</span><button id="quitBtn" title="保存后退出程序">退出</button></div>
   </div>
 </aside>
 
@@ -88,7 +88,7 @@
         <div id="recentCases"></div>
       </section>
       <div id="setupHint" class="setup-hint hidden"><span class="info-mark">i</span><div><strong>配置模型接口，开始 AI 研析</strong><span>填写接口地址、模型名称和密钥，资料与项目记录仍保存在本机。</span></div><button id="setupModelBtn">前往设置 →</button></div>
-      <footer><span>BUILT &amp; CURATED BY 刘鸿志</span><span>Rapid 8D · Windows Desktop · v0.3.1</span></footer>
+      <footer><span>BUILT &amp; CURATED BY 刘鸿志</span><span>Rapid 8D · Windows Desktop · v0.3.2</span></footer>
     </div>
   </section>
 
@@ -116,7 +116,7 @@
         <div id="chatPane" class="tab-pane">
           <div class="chat-heading"><span id="chatStage"></span><button id="importBtn" class="subtle">整份资料成稿</button></div>
           <div id="messages" class="messages"></div><div id="jobStatus" class="job-status hidden"></div>
-          <div class="composer"><textarea id="message" rows="4" placeholder="补充现象、证据、验证记录或你的判断…"></textarea><div class="composer-footer"><span>Ctrl + Enter 发送</span><button id="sendBtn" class="primary">发送</button></div></div>
+          <div class="composer"><div id="stageFocus" class="stage-focus"></div><textarea id="message" rows="4" placeholder="按上面的问题补充事实。跑题也会被拉回到当前阶段。"></textarea><div class="composer-footer"><span>Ctrl + Enter 发送</span><div class="composer-actions"><button id="reviseBtn" type="button">整理本阶段</button><button id="sendBtn" class="primary">发送</button></div></div></div>
         </div>
         <div id="sourcesPane" class="tab-pane hidden"><div class="pane-intro"><h3>调查资料</h3><p>勾选本次使用的资料。当前报告和已有分析也会作为上下文发送。</p></div><label class="upload" id="uploadLabel">＋ 选择文件<input type="file" id="files" multiple accept=".docx,.pdf,.xlsx,.xls,.csv,.tsv,.txt,.md"></label><p class="hint">DOCX · 文字 PDF · Excel · 文本，单个 20 MB</p><textarea id="pasteText" rows="6" placeholder="粘贴调查过程、试验结果或其他文字资料…"></textarea><button id="pasteBtn" class="secondary wide">添加文字资料</button><div id="sources"></div></div>
         <div id="gapsPane" class="tab-pane hidden"><div class="pane-intro"><h3>证据缺口与冲突</h3><p>补充关键证据、处理资料冲突，再复核阶段结论。</p></div><div id="gaps"></div></div>

@@ -11,19 +11,23 @@ using System.Windows.Forms;
 
 [assembly: AssemblyTitle("启动 Rapid 8D")]
 [assembly: AssemblyProduct("Rapid 8D")]
-[assembly: AssemblyVersion("0.3.1.0")]
-[assembly: AssemblyFileVersion("0.3.1.0")]
+[assembly: AssemblyVersion("0.3.2.0")]
+[assembly: AssemblyFileVersion("0.3.2.0")]
 
 internal sealed class Rapid8DContext : ApplicationContext
 {
-    private readonly string target;
+    private readonly string fileName;
+    private readonly string arguments;
+    private readonly string workingDirectory;
     private readonly Form splash;
     private readonly NotifyIcon tray;
     private bool exiting;
 
-    internal Rapid8DContext(string executable)
+    internal Rapid8DContext(string fileName, string arguments, string workingDirectory)
     {
-        target = executable;
+        this.fileName = fileName;
+        this.arguments = arguments ?? "";
+        this.workingDirectory = workingDirectory;
         splash = BuildSplash();
         tray = BuildTray();
         splash.Shown += delegate { splash.BeginInvoke(new Action(StartApplication)); };
@@ -69,7 +73,7 @@ internal sealed class Rapid8DContext : ApplicationContext
             Font = new Font("Segoe UI", 7), ForeColor = Color.FromArgb(92, 169, 172)
         };
         var credit = new Label {
-            Text = "BUILT & CURATED BY 刘鸿志   ·   v0.3.1", AutoSize = true, Location = new Point(44, 273),
+            Text = "BUILT & CURATED BY 刘鸿志   ·   v0.3.2", AutoSize = true, Location = new Point(44, 273),
             Font = new Font("Microsoft YaHei UI", 8), ForeColor = Color.FromArgb(120, 155, 166)
         };
         surface.Controls.AddRange(new Control[] { mark, name, subtitle, rule, message, progress, method, credit });
@@ -131,9 +135,11 @@ internal sealed class Rapid8DContext : ApplicationContext
     private void LaunchTarget()
     {
         Process.Start(new ProcessStartInfo {
-            FileName = target,
-            WorkingDirectory = Path.GetDirectoryName(target),
-            UseShellExecute = true
+            FileName = fileName,
+            Arguments = arguments,
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            CreateNoWindow = true
         });
     }
 
@@ -189,22 +195,74 @@ internal static class QuickLauncher
 {
     private static Mutex instanceMutex;
 
-    private static string FindTarget()
+    private static bool TryPlan(out string fileName, out string arguments, out string workingDirectory, out string error)
     {
+        fileName = arguments = workingDirectory = error = null;
         string folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        string entry = Path.Combine(folder, "desktop_entry.py");
+        if (File.Exists(entry))
+        {
+            string python = FindPython();
+            if (python == null)
+            {
+                error = "没有找到 Python。\r\n\r\n请安装 Python 3.11 或 3.12 后再双击「启动 Rapid 8D」。";
+                return false;
+            }
+            fileName = python;
+            arguments = "\"" + entry + "\"";
+            workingDirectory = folder;
+            return true;
+        }
         string sibling = Path.Combine(folder, "Rapid8D.exe");
         string portable = Path.Combine(folder, "release", "Rapid8D", "Rapid8D.exe");
         string installed = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Rapid8D", "Rapid8D.exe");
-        return File.Exists(sibling) ? sibling : (File.Exists(portable) ? portable : installed);
+        string target = File.Exists(sibling) ? sibling : (File.Exists(portable) ? portable : installed);
+        if (!File.Exists(target))
+        {
+            error = "没有找到 Rapid 8D 程序。";
+            return false;
+        }
+        fileName = target;
+        arguments = "";
+        workingDirectory = Path.GetDirectoryName(target);
+        return true;
+    }
+
+    private static string FindPython()
+    {
+        string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string programs = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        string[] roots = {
+            Path.Combine(local, "Programs", "Python", "Python312"),
+            Path.Combine(local, "Programs", "Python", "Python311"),
+            Path.Combine(programs, "Python312"),
+            Path.Combine(programs, "Python311")
+        };
+        foreach (string root in roots)
+        {
+            string pythonw = Path.Combine(root, "pythonw.exe");
+            if (File.Exists(pythonw)) return pythonw;
+        }
+        string path = Environment.GetEnvironmentVariable("PATH") ?? "";
+        foreach (string dir in path.Split(';'))
+        {
+            string trimmed = dir.Trim();
+            if (trimmed.Length == 0 || trimmed.IndexOf("codex-runtimes", StringComparison.OrdinalIgnoreCase) >= 0) continue;
+            string pythonw = Path.Combine(trimmed, "pythonw.exe");
+            if (File.Exists(pythonw)) return pythonw;
+        }
+        string codex = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "codex-runtimes", "codex-primary-runtime", "dependencies", "python", "pythonw.exe");
+        if (File.Exists(codex)) return codex;
+        return null;
     }
 
     [STAThread]
     private static int Main()
     {
-        string target = FindTarget();
-        if (!File.Exists(target))
+        string fileName, arguments, workingDirectory, error;
+        if (!TryPlan(out fileName, out arguments, out workingDirectory, out error))
         {
-            MessageBox.Show("没有找到 Rapid 8D 程序。\r\n\r\n请先运行 release 文件夹中的安装程序，或保留完整的 release\\Rapid8D 文件夹。", "Rapid 8D", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(error, "Rapid 8D", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return 1;
         }
 
@@ -214,7 +272,7 @@ internal static class QuickLauncher
         {
             try
             {
-                Process.Start(new ProcessStartInfo { FileName = target, WorkingDirectory = Path.GetDirectoryName(target), UseShellExecute = true });
+                Process.Start(new ProcessStartInfo { FileName = fileName, Arguments = arguments, WorkingDirectory = workingDirectory, UseShellExecute = false, CreateNoWindow = true });
                 return 0;
             }
             catch { return 2; }
@@ -222,7 +280,7 @@ internal static class QuickLauncher
 
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new Rapid8DContext(target));
+        Application.Run(new Rapid8DContext(fileName, arguments, workingDirectory));
         instanceMutex.ReleaseMutex();
         instanceMutex.Dispose();
         return 0;

@@ -7,6 +7,16 @@ FILES = ["d1_team", "d2_problem", "d3_containment", "d4_root_cause", "d5_correct
 STATES = {"not_started", "in_progress", "blocked", "ready_for_review", "complete"}
 EVIDENCE = {"suspected", "supported", "verified", "refuted", "inconclusive"}
 LABELS = {"not_started":"未开始","in_progress":"进行中","blocked":"待补证据","ready_for_review":"待复核","complete":"已复核"}
+FOCUS = {
+"D1": ("这次问题由谁负责协调推进？", "说明协调人、已经参与的人，以及各自职责。还没有的角色直接说尚未确定。"),
+"D2": ("实际出现了什么现象，范围到哪里？", "说明产品、地点、时间、数量和单位。未知的边界保留为未知。"),
+"D3": ("哪些范围已经做了临时围堵，依据是什么？", "说明库存、在制、已交付或客户处分别如何处理，以及是否已经执行。"),
+"D4": ("目前最需要验证的产生原因是什么？", "给出已有的对照证据。逃逸原因单独说明，没有验证记录就不要写成已确认根因。"),
+"D5": ("针对已验证的根因，准备采用哪一条永久措施？", "说明为什么选它，以及还需要什么验证。尚未验证的原因不要提前定措施。"),
+"D6": ("永久措施是否已经实施，效果如何核对？", "说明实施范围、数据、观察条件和围堵何时退出。"),
+"D7": ("为防止再发，要更新哪些文件和责任？", "只写与已验证原因对应的标准化或横向展开，不把计划写成已经完成。"),
+"D8": ("还有哪些未关闭项，结案需要谁确认？", "前序阶段未复核或关键缺口还在时，不能写成已经结案。"),
+}
 CHECKS = {
 "D1":["成员和职责是真实记录","负责人及必要授权已确认"],
 "D2":["问题定义、范围、单位和分母已核对","关键矛盾已解决，未知边界已说明"],
@@ -29,7 +39,7 @@ def new_case(title, mode="guided", language="zh"):
     if mode not in ("guided","import") or language not in ("zh","bilingual","en"): raise UserError("案例选项无效。")
     return dict(id=uid("C"), title=title[:160], mode=mode, language=language, revision=0,
         created_at=now(), updated_at=now(), report_kind="draft",
-        stages=[dict(id=f"D{i+1}",title=t,status="not_started",report_markdown="",review=None,manual=False) for i,t in enumerate(TITLES)],
+        stages=[dict(id=f"D{i+1}",title=t,status="not_started",report_markdown="",review=None,manual=False,focus_question=FOCUS[f"D{i+1}"][0],focus_hint=FOCUS[f"D{i+1}"][1]) for i,t in enumerate(TITLES)],
         sources=[],messages=[],facts=[],hypotheses=[],root_causes=[],actions=[],gaps=[],conflicts=[],
         fishbone=dict(problem_statement="",categories=[]), history_note="")
 def stage(case, sid):

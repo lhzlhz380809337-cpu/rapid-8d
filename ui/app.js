@@ -2,6 +2,16 @@
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const stateNames={not_started:'未开始',in_progress:'进行中',blocked:'待补证据',ready_for_review:'待复核',complete:'已复核'};
+const stageFocus={
+ D1:['这次问题由谁负责协调推进？','说明协调人、已经参与的人，以及各自职责。还没有的角色直接说尚未确定。'],
+ D2:['实际出现了什么现象，范围到哪里？','说明产品、地点、时间、数量和单位。未知的边界保留为未知。'],
+ D3:['哪些范围已经做了临时围堵，依据是什么？','说明库存、在制、已交付或客户处分别如何处理，以及是否已经执行。'],
+ D4:['目前最需要验证的产生原因是什么？','给出已有的对照证据。逃逸原因单独说明，没有验证记录就不要写成已确认根因。'],
+ D5:['针对已验证的根因，准备采用哪一条永久措施？','说明为什么选它，以及还需要什么验证。尚未验证的原因不要提前定措施。'],
+ D6:['永久措施是否已经实施，效果如何核对？','说明实施范围、数据、观察条件和围堵何时退出。'],
+ D7:['为防止再发，要更新哪些文件和责任？','只写与已验证原因对应的标准化或横向展开，不把计划写成已经完成。'],
+ D8:['还有哪些未关闭项，结案需要谁确认？','前序阶段未复核或关键缺口还在时，不能写成已经结案。']
+};
 const evidenceNames={suspected:'待验证',supported:'有支持',verified:'已验证',refuted:'已排除',inconclusive:'不确定'};
 const S={case:null,stage:'D1',cases:[],settings:{},checks:{},editing:false,busy:false,proposal:null,selected:new Set(),dirty:false,saveChain:Promise.resolve(),saveTimer:null,fishURL:null,view:'home',reportView:'report',mobilePane:'analysis'};
 let token=new URLSearchParams(location.hash.slice(1)).get('token')||sessionStorage.getItem('rapidToken')||'';
@@ -79,10 +89,17 @@ function renderWorkspace(){
  $('caseProgress').textContent='阶段复核 '+S.case.stages.filter(s=>s.status==='complete').length+' / 8';
  $('reportKind').textContent={draft:'报告草稿',reviewed_snapshot:'阶段复核报告',closed:'已结案报告'}[S.case.report_kind]||'报告草稿';
  $('caseMeta').textContent=S.case.id+'  ·  '+(S.case.language==='bilingual'?'中英双语报告':S.case.language==='en'?'英文报告':'中文报告')+'  ·  版本 '+S.case.revision;
- $('stageList').innerHTML=S.case.stages.map(s=>'<button class="stage-btn '+(s.id===S.stage?'active ':'')+(s.status==='complete'?'complete ':'')+'status-'+s.status+'" data-stage="'+s.id+'"><span class="stage-num">'+s.id+'</span><span class="stage-name">'+esc(s.title)+'<small>'+stateNames[s.status]+'</small></span></button>').join('');
- $('chatStage').textContent=S.stage+' · '+S.case.stages.find(s=>s.id===S.stage).title;
+ $('stageList').innerHTML=S.case.stages.map(s=>{
+  const gap=S.case.gaps.find(g=>!g.resolved&&g.stage===s.id);
+  const note=gap?gap.description:(s.status==='complete'?'已复核':(s.focus_question||stageFocus[s.id][0]));
+  return '<button class="stage-btn '+(s.id===S.stage?'active ':'')+(s.status==='complete'?'complete ':'')+'status-'+s.status+'" data-stage="'+s.id+'" title="'+esc(stateNames[s.status]+' · '+note)+'"><span class="stage-num">'+s.id+'</span><span class="stage-name">'+esc(s.title)+'<small>'+esc(note)+'</small></span></button>';
+ }).join('');
+ const current=S.case.stages.find(s=>s.id===S.stage);
+ const focus=stageFocus[S.stage];
+ $('stageFocus').innerHTML='<span>当前要澄清</span><strong>'+esc(current.focus_question||focus[0])+'</strong><p>'+esc(current.focus_hint||focus[1])+'</p>';
+ $('chatStage').textContent=S.stage+' · '+current.title;
  const messages=S.case.messages.filter(m=>m.stage===S.stage);
- $('messages').innerHTML=messages.length?messages.map(m=>'<div class="message-label">'+(m.role==='user'?'调查记录':'分析建议')+'</div><div class="message '+(m.role==='user'?'user':'assistant')+'">'+esc(m.text)+'</div>').join(''):'<div class="welcome-message"><strong>从已知事实开始</strong><br>描述问题现象、提供调查记录，或在“资料库”中添加文件。分析建议会在这里显示。</div>';
+ $('messages').innerHTML=messages.length?messages.map(m=>'<div class="message-label">'+(m.role==='user'?'你的输入':'阶段引导')+'</div><div class="message '+(m.role==='user'?'user':'assistant')+'">'+esc(m.text)+'</div>').join(''):'<div class="welcome-message"><strong>先回答上面的问题</strong><br>其他阶段已经写进报告的内容会用来对照矛盾。无关输入会留在对话里，不会写进资料或报告。</div>';
  $('messages').scrollTop=$('messages').scrollHeight;
  $('proposalBanner').classList.toggle('hidden',!S.proposal);
  renderCases();renderSources();renderGaps();renderReport();
@@ -152,23 +169,28 @@ async function uploadFiles(){
  }
  $('files').value='';renderWorkspace();tab('sources');toast('文件已读取，请核对提取范围。');
 }
-function setBusy(value,message='正在分析资料…'){S.busy=value;['sendBtn','importBtn','pasteBtn','files','reviewBtn','fishBtn','newBtn'].forEach(id=>$(id).disabled=value);$('jobStatus').classList.toggle('hidden',!value);$('jobStatus').textContent=message;}
-async function runAnalysis(mode){
+function setBusy(value,message='正在分析资料…'){S.busy=value;['sendBtn','reviseBtn','importBtn','pasteBtn','files','reviewBtn','fishBtn','newBtn'].forEach(id=>$(id).disabled=value);$('jobStatus').classList.toggle('hidden',!value);$('jobStatus').textContent=message;}
+async function runAnalysis(mode,revise=false){
  if(S.busy)return;await flushSave();
  if(!S.settings.base_url){await settings();toast('请先配置模型接口。');return;}
- const message=mode==='guided'?$('message').value.trim():'';
- if(mode==='guided'&&!message&&!S.case.sources.length)return toast('请先描述问题或添加资料。');
+ let message=mode==='guided'?$('message').value.trim():'';
+ if(mode==='guided'&&revise&&!message)message='请根据已有证据整理当前阶段报告。';
+ if(mode==='guided'&&!message&&!S.case.sources.length&&!revise)return toast('请先描述问题或添加资料。');
  const cid=S.case.id;
- setBusy(true);
+ setBusy(true,revise?'正在整理当前阶段…':'正在对照各阶段并分析…');
  try{
-  const job=await api('/cases/'+cid+'/analyze',{revision:S.case.revision,stage:S.stage,mode,message,source_ids:[...S.selected]});
+  const job=await api('/cases/'+cid+'/analyze',{revision:S.case.revision,stage:S.stage,mode,message,revise_report:revise,source_ids:[...S.selected]});
   const knownSources=new Set(S.case.sources.map(x=>x.id));$('message').value='';await refreshCase();S.case.sources.filter(x=>!knownSources.has(x.id)).forEach(x=>S.selected.add(x.id));renderWorkspace();tab('chat');
   while(true){
    await new Promise(resolve=>setTimeout(resolve,1300));
    const result=await api('/jobs/'+job.job_id);
    if(result.status==='error')throw Error(result.message);
    if(result.status==='done'){
-    await refreshCase();S.proposal=await api('/cases/'+cid+'/proposal/'+result.proposal_id);renderWorkspace();toast('分析建议已生成，请对比后采用。');break;
+    const seen=new Set(S.case.sources.map(x=>x.id));
+    await refreshCase();S.case.sources.filter(x=>!seen.has(x.id)).forEach(x=>S.selected.add(x.id));
+    if(result.proposal_id){S.proposal=await api('/cases/'+cid+'/proposal/'+result.proposal_id);toast(revise?'阶段正文建议已生成，请对比后采用。':'发现可写入的事实或冲突，请对比后采用。');}
+    else{S.proposal=null;toast('已把注意力留在当前阶段的问题上。');}
+    renderWorkspace();break;
    }
   }
  }finally{setBusy(false);}
@@ -282,6 +304,7 @@ $('closeModal').onclick=closeModal;
 $('pasteBtn').onclick=guard(addPaste);
 $('files').onchange=guard(uploadFiles);
 $('sendBtn').onclick=guard(()=>runAnalysis('guided'));
+$('reviseBtn').onclick=guard(()=>runAnalysis('guided',true));
 $('importBtn').onclick=guard(()=>runAnalysis('import'));
 $('message').onkeydown=e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')guard(()=>runAnalysis('guided'))();};
 $('proposalBtn').onclick=guard(showProposal);
