@@ -1,10 +1,10 @@
-# Rapid 8D Windows 桌面版 0.3.2
+# Rapid 8D Windows 桌面版 0.5.0
 
 用于个人完成制造业 8D 调查、整理报告。首版有两种入口，最终进入同一案例工作区。
 
 ## 安装和启动
 
-最简单的方式：双击项目最外层的 **启动 Rapid 8D.exe**。0.3.2 会用本机 Python 启动当前源码，并显示品牌载入画面。需要 Python 3.11 或 3.12。旁边没有 `desktop_entry.py` 时，仍会查找便携版或当前账户下的安装版。
+最简单的方式：双击项目最外层的 **启动 Rapid 8D.exe**。0.5.0 会用本机 Python 启动当前源码，并显示品牌载入画面。需要 Python 3.11 或 3.12。旁边没有 `desktop_entry.py` 时，仍会查找便携版或当前账户下的安装版。
 
 双击 release/Rapid8D-Setup.exe，点击“安装”。安装在当前 Windows 用户的 LocalAppData/Programs/Rapid8D，并创建桌面和开始菜单快捷方式，不需要另外安装 Python。
 

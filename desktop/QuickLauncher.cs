@@ -11,8 +11,8 @@ using System.Windows.Forms;
 
 [assembly: AssemblyTitle("启动 Rapid 8D")]
 [assembly: AssemblyProduct("Rapid 8D")]
-[assembly: AssemblyVersion("0.3.2.0")]
-[assembly: AssemblyFileVersion("0.3.2.0")]
+[assembly: AssemblyVersion("0.5.0.0")]
+[assembly: AssemblyFileVersion("0.5.0.0")]
 
 internal sealed class Rapid8DContext : ApplicationContext
 {
@@ -73,7 +73,7 @@ internal sealed class Rapid8DContext : ApplicationContext
             Font = new Font("Segoe UI", 7), ForeColor = Color.FromArgb(92, 169, 172)
         };
         var credit = new Label {
-            Text = "BUILT & CURATED BY 刘鸿志   ·   v0.3.2", AutoSize = true, Location = new Point(44, 273),
+            Text = "BUILT & CURATED BY 刘鸿志   ·   v0.5.0", AutoSize = true, Location = new Point(44, 273),
             Font = new Font("Microsoft YaHei UI", 8), ForeColor = Color.FromArgb(120, 155, 166)
         };
         surface.Controls.AddRange(new Control[] { mark, name, subtitle, rule, message, progress, method, credit });

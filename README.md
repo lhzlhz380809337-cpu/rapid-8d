@@ -16,7 +16,7 @@ Rapid 8D 是一款面向制造业质量问题解决的 Windows 桌面应用。�
 
 克隆本仓库后，双击根目录的 **启动 Rapid 8D.exe**。需要本机已安装 Python 3.11 或 3.12。案例和模型密钥保存在当前用户的本地数据目录。
 
-0.3.2 暂不提供安装包。上一版安装程序仍为 Releases 中的 `Rapid8D-Setup-0.3.1.exe`。
+0.5.0 暂不提供安装包。上一版安装程序仍为 Releases 中的 `Rapid8D-Setup-0.3.1.exe`。
 
 详细说明见 [README_DESKTOP.md](README_DESKTOP.md)，桌面版设计见 [docs/desktop-design.md](docs/desktop-design.md)。
 
@@ -24,4 +24,4 @@ Rapid 8D 是一款面向制造业质量问题解决的 Windows 桌面应用。�
 
 程序使用 Python 本地服务和原生 Windows 启动器。运行 `run-dev.ps1` 可启动开发版；运行 `desktop/build.ps1` 和 `desktop/build-setup.ps1` 可生成便携版与安装程序。
 
-当前版本：**0.3.2**
+当前版本：**0.5.0**
